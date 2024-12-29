@@ -1,6 +1,6 @@
 import { socket } from "../[meet]/services"
 
-async function createSendTransport(id, userName, device, transport) {
+async function createSendTransport(id, user, device, transport) {
     try {
         const sendTransport = await device.createSendTransport({
             id: transport.id,
@@ -14,8 +14,8 @@ async function createSendTransport(id, userName, device, transport) {
             "connect",
             async ({ dtlsParameters }: any, callback: any, errback: any) => {
                 try {
-                    console.log("----------> producer transport has connected");
-                    await socket.emit("transport-connect", { id: id, userName: userName, dtlsParameters: dtlsParameters });
+                    await socket.emit("transport-connect", { id: id, user: user, dtlsParameters: dtlsParameters });
+                    console.log("producer transport connected");
                     callback();
                 } catch (error) {
                     errback(error);
@@ -33,7 +33,7 @@ async function createSendTransport(id, userName, device, transport) {
                 try {
                     socket.emit(
                         "transport-produce",
-                        { kind, rtpParameters },
+                        { id: id, user: user, kind: kind, rtpParameters: rtpParameters },
                         ({ id }: any) => {
                             callback({ id });
                         }

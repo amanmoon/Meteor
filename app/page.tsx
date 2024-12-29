@@ -23,7 +23,7 @@ export default function Page() {
   function OAuthSignOut() {
     signOut();
   }
-  console.log(session);
+
   return (
     <>
       <button onClick={goToMeet}>Create Meet</button>

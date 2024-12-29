@@ -1,6 +1,7 @@
 "use client";
 import { createSendTransport } from "./helpers";
 import { useEffect, useRef, useState } from "react";
+import { useSession } from 'next-auth/react';
 
 import { Device } from "mediasoup-client";
 import { socket } from "../[meet]/services"
@@ -9,6 +10,8 @@ export default function Page() {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     // const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+
+    const { data: session, status } = useSession();
 
     const [videoParams, setVideoParams] = useState({
         encoding: [
@@ -27,6 +30,8 @@ export default function Page() {
     });
 
     const [id, setId] = useState<string>('');
+    // const [userId, setuserId] = useState<string>('');
+    // const [userName, setuserName] = useState<string>('');
     const [video, setVideo] = useState<boolean>(false);
     const [audio, setAudio] = useState<boolean>(false);
     const [device, setDevice] = useState<any>(null);
@@ -37,6 +42,13 @@ export default function Page() {
         const id = window.location.href.split('/').pop();
         setId(id);
     }, [])
+
+    if (status === 'loading')
+        return <p>Loading...</p>;
+
+    if (!session)
+        return <p>You are not signed in.</p>;
+
 
     const createDevice = () => {
         socket.emit('getRTPcapablities', { id: id }, async (res) => {
@@ -52,11 +64,11 @@ export default function Page() {
     }
 
     const setupSendTransport = () => {
-        socket.emit('getTransportParams', { id: id }, (res) => {
+        socket.emit('getTransportParams', { id: id, user: session.user }, async (res) => {
             if (!res.error) {
                 const transportParams = res.data;
                 console.log(res);
-                const sendTransport = createSendTransport(id, userName, device, transportParams);
+                const sendTransport = await createSendTransport(id, session.user, device, transportParams);
                 console.log('transport setup complete!')
                 setSendTransport(sendTransport);
             } else
@@ -70,7 +82,9 @@ export default function Page() {
             if (videoRef.current && !video) {
                 const track = stream.getVideoTracks()[0];
                 videoRef.current.srcObject = stream;
-                setVideoParams((current) => ({ ...current, track }));
+                await setVideoParams((current) => ({ ...current, track }));
+                const producer = await sendTransport.produce(videoParams);
+                console.log(producer)
             }
             else {
                 videoParams['track'].stop()
@@ -93,6 +107,8 @@ export default function Page() {
                 const track = stream.getTracks()[0];
                 audioRef.current.srcObject = stream;
                 setAudioParams((current) => ({ ...current, track }));
+                const producer = await sendTransport.produce(audioParams);
+                console.log('audio: ', producer);
             } else {
                 audioParams['track'].stop()
                 for (const track of stream.getAudioTracks()) {
