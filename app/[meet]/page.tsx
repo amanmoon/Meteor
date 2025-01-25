@@ -48,7 +48,7 @@ export default function Page() {
     async function connect() {
 
         console.log('hello')
-        socket = io(process.env.BASE_URL, {
+        socket = io(process.env.NEXT_PUBLIC_BASE_URL, {
             withCredentials: true,
         });
 
