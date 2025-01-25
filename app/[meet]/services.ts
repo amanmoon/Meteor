@@ -1,9 +1,9 @@
 import axios from "axios";
 
-
 async function createMeet() {
     try {
-        const response = await axios.get("http://localhost:8080/room/create");
+        axios.defaults.baseURL = process.env.NEXT_PUBLIC_BASE_URL
+        const response = await axios.get("/room/create");
         return response.data
     }
     catch (error) {
@@ -11,13 +11,6 @@ async function createMeet() {
     }
 }
 
-// async function getTransportParams(socket, id: string) {
-
-// }
-
-// async function getRtpCapablities(socket, id: string) {
-
-// }
 
 
 export { createMeet };

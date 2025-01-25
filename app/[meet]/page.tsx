@@ -4,7 +4,6 @@ import { useSession } from 'next-auth/react';
 import * as mediasoup from "mediasoup-client";
 import io from 'socket.io-client';
 
-
 export default function Page() {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -49,7 +48,7 @@ export default function Page() {
     async function connect() {
 
         console.log('hello')
-        socket = io('http://localhost:8080/', {
+        socket = io(process.env.BASE_URL, {
             withCredentials: true,
         });
 
