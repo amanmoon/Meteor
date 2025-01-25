@@ -1,19 +1,19 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useSession } from 'next-auth/react';
 import * as mediasoup from "mediasoup-client";
 import io from 'socket.io-client';
 
 
 export default function Page() {
-    let videoRef = useRef<HTMLVideoElement | null>(null);
-    let remoteVideoRef = useRef<HTMLVideoElement | null>(null);
-    let audioRef = useRef<HTMLAudioElement | null>(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     // const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
 
     const { data: session, status } = useSession();
 
-    let videoParams = {
+    const videoParams = {
         encoding: [
             { rid: "r0", maxBitrate: 100000, scalabilityMode: "S1T3" },
             { rid: "r1", maxBitrate: 300000, scalabilityMode: "S1T3" },
@@ -23,18 +23,9 @@ export default function Page() {
         track: null
     };
 
-    let audioParams = {
-        encoding: [
-            { rid: "r1", maxBitrate: 300000, scalabilityMode: "S1T3" },
-            { rid: "r2", maxBitrate: 900000, scalabilityMode: "S1T3" },
-        ],
-        codecOptions: { videoGoogleStartBitrate: 1000 },
-        track: null
-    };
-
     let device;
     let socket;
-    let producer;
+    // let producer;
 
     useEffect(() => {
         window.location.href.split('/').pop();
@@ -85,6 +76,7 @@ export default function Page() {
             // console.error('could not connect to %s%s (%s)', serverUrl, opts.path, error.message);
             // $txtConnection.innerHTML = 'Connection failed';
             // $btnConnect.disabled = false;
+            console.log(error);
         });
 
         socket.on('newProducer', () => {
@@ -108,7 +100,7 @@ export default function Page() {
         // const isWebcam = (e.target.id === 'btn_webcam');
         // $txtPublish = isWebcam ? $txtWebcam : $txtScreen;
 
-        const data: any = await socketRequest('createProducerTransport', {
+        const data = await socketRequest('createProducerTransport', {
             forceTcp: false,
             rtpCapabilities: device.rtpCapabilities,
         });
@@ -126,7 +118,7 @@ export default function Page() {
 
         transport.on('produce', async ({ kind, rtpParameters }, callback, errback) => {
             try {
-                const { id }: any = await socketRequest('produce', {
+                const { id } = await socketRequest('produce', {
                     transportId: transport.id,
                     kind,
                     rtpParameters,
@@ -165,13 +157,14 @@ export default function Page() {
 
         let stream;
         try {
-            stream = await getUserMedia(transport);
+            stream = await getUserMedia();
             const track = stream.getVideoTracks()[0];
             videoParams.track = track;
             // check this
-            producer = await transport.produce(videoParams);
+            await transport.produce(videoParams);
         } catch (err) {
             // $txtPublish.innerHTML = 'failed';
+            console.log(err);
         }
     }
     let video = false;
@@ -184,7 +177,7 @@ export default function Page() {
         video = !video;
     }
 
-    async function getUserMedia(transport) {
+    async function getUserMedia() {
         if (!device.canProduce('video')) {
             console.error('cannot produce video');
             return;
@@ -201,7 +194,7 @@ export default function Page() {
     }
 
     async function subscribe() {
-        const data: any = await socketRequest('createConsumerTransport', {
+        const data = await socketRequest('createConsumerTransport', {
             forceTcp: false,
         });
         if (data.error) {
@@ -249,7 +242,7 @@ export default function Page() {
 
     async function consume(transport) {
         const { rtpCapabilities } = device;
-        const data: any = await socketRequest('consume', { rtpCapabilities });
+        const data = await socketRequest('consume', { rtpCapabilities });
         const {
             producerId,
             id,
@@ -257,7 +250,7 @@ export default function Page() {
             rtpParameters,
         } = data;
 
-        let codecOptions = {};
+        const codecOptions = {};
         const consumer = await transport.consume({
             id,
             producerId,

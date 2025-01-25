@@ -11,13 +11,13 @@ async function createMeet() {
     }
 }
 
-async function getTransportParams(socket, id: string) {
+// async function getTransportParams(socket, id: string) {
 
-}
+// }
 
-async function getRtpCapablities(socket, id: string) {
+// async function getRtpCapablities(socket, id: string) {
 
-}
+// }
 
 
 export { createMeet };
