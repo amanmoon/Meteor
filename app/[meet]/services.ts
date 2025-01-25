@@ -1,10 +1,5 @@
 import axios from "axios";
-import { io } from "socket.io-client";
 
-
-const socket = io('http://localhost:8080/', {
-    withCredentials: true
-});
 
 async function createMeet() {
     try {
@@ -25,4 +20,4 @@ async function getRtpCapablities(socket, id: string) {
 }
 
 
-export { createMeet, socket };
+export { createMeet };
